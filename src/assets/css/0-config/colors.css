@@ -1,0 +1,49 @@
+/* -------------------------------------------------
+== Colors
+-------------------------------------------------- */
+
+:root {
+	/* Hues
+	-------------------------------------------------- */
+	--color-hue-primary: 275;
+	--color-hue-secondary: calc(var(--color-hue-primary) + 25);
+	--color-hue-danger: 359;
+
+	/* Backgrounds
+	-------------------------------------------------- */
+	--color-bg-1: var(--color-hue-primary) 27% 22%;
+	--color-bg-2: var(--color-hue-primary) 23% 15%;
+	--color-bg-3: var(--color-hue-primary) 28% 16%;
+	--color-bg-gradient-1: linear-gradient(
+		95.41deg,
+		hsl(var(--color-hue-secondary) 100% 47%) 0%,
+		hsl(var(--color-hue-secondary) 88% 40%) 100%
+	);
+	--color-bg-gradient-2: linear-gradient(
+		95.41deg,
+		hsl(var(--color-hue-secondary) 80% 51%) 0%,
+		hsl(var(--color-hue-secondary) 60% 51%) 0.01%,
+		hsl(var(--color-hue-secondary) 48% 40%) 100%
+	);
+	--color-bg-gradient-3: linear-gradient(
+		95.41deg,
+		hsl(var(--color-hue-secondary) 50% 31%) 0%,
+		hsl(var(--color-hue-secondary) 50% 31%) 0.01%,
+		hsl(var(--color-hue-secondary) 36% 22%) 100%
+	);
+	--color-bg-gradient-gray: linear-gradient(
+		95.41deg,
+		hsl(calc(var(--color-hue-secondary) + 3) 73% 51%) 0%,
+		hsl(calc(var(--color-hue-secondary) + 8) 68% 39%) 100%
+	);
+
+	/* Text
+	-------------------------------------------------- */
+	--color-text-primary-1: hsl(var(--color-hue-primary) 100% 97%);
+	--color-text-primary-2: hsl(var(--color-hue-primary) 100% 95%);
+	--color-text-primary-3: hsl(var(--color-hue-primary) 50% 95%);
+	--color-text-primary-4: hsl(var(--color-hue-primary) 29% 80%);
+	--color-text-secondary-1: hsl(var(--color-hue-secondary) 100% 97%);
+	--color-text-secondary-2: hsl(var(--color-hue-secondary) 88% 40%);
+
+}

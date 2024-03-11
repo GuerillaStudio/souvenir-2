@@ -1,0 +1,59 @@
+/* -------------------------------------------------
+== Layout
+-------------------------------------------------- */
+
+/* container
+-------------------------------------------------- */
+
+.container {
+	width: 100%;
+	max-width: var(--container-max-w);
+	margin-inline: auto;
+	padding-inline: var(--container-gap);
+}
+
+
+
+/* Panel Top
+-------------------------------------------------- */
+
+.paneltop {
+	display: flex;
+	min-height: calc(100dvh - (var(--spacing-section) * 2));
+	flex-direction: column;
+	padding-top: calc(var(--spacing-section) * .5);
+	padding-bottom: calc(var(--spacing-section) * .75);
+	border-radius: 0 0 var(--border-radius-big) var(--border-radius-big);
+	background-color: hsl(var(--color-bg-1));
+	box-shadow: 0 0.2rem 1.4rem 0 hsl(var(--color-hue-secondary) 28% 10% / 80%);
+	row-gap: calc(var(--spacing-section) / 2);
+}
+
+/* gridstack
+-------------------------------------------------- */
+
+.gridstack {
+	display: grid;
+
+	--transition-duration: 0.3s;
+	--transition-props: var(--transition-duration) opacity, var(--transition-duration) visibility;
+}
+
+.gridstack > * {
+	position: relative;
+	grid-column: 1 / 2;
+	grid-row: 1 / 2;
+	opacity: 1;
+	transition: var(--transition-props);
+}
+
+:where(.gridstack > * > *) {
+	opacity: 1;
+	transition: var(--transition-props);
+}
+
+.gridstack > :where([hidden], [hidden] > *) {
+	opacity: 0;
+	transition: var(--transition-props);
+	visibility: hidden;
+}

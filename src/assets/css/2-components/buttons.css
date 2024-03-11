@@ -1,0 +1,70 @@
+/* -------------------------------------------------
+== Buttons component
+-------------------------------------------------- */
+
+.btn {
+	/* Tokens
+	-------------------------------------------------- */
+
+	--btn-primary-bg: var(--color-bg-gradient-1);
+	--btn-secondary-bg: var(--color-bg-gradient-2);
+	--btn-tertiary-bg: var(--color-bg-gradient-3);
+	--btn-disabled-bg: var(--color-bg-gradient-gray);
+	--btn-shadow:
+		0 0.111em 0.222em hsl(var(--color-hue-primary) 29% 10% / 80%),
+		inset 0 0.0555em 0 hsl(var(--color-hue-primary) 100% 95% / 50%);
+	--btn-shadow-disabled: inset 0px 1px 0px hsl(0deg 0% 100% / 14.9%);
+
+
+	/* Style
+	-------------------------------------------------- */
+
+	display: inline-flex;
+	max-width: 100%;
+	align-items: center;
+	justify-content: center;
+	padding: .888em 1.277em;
+	border: none;
+	border-radius: 420rem;
+	margin: 0;
+	background: hsl(var(--color-bg-1)) var(--btn-primary-bg);
+	box-shadow: var(--btn-shadow);
+	color: var(--color-text-secondary-1);
+	font-size: 1.8rem;
+	font-style: italic;
+	font-weight: 900;
+	gap: .555em;
+	letter-spacing: 0.02em;
+	line-height: 1.5em;
+	text-align: center;
+	text-decoration: none;
+}
+
+/* Colors
+-------------------------------------------------- */
+
+.btn:where(.btn--secondary) {
+	background: var(--color-bg-2) var(--btn-secondary-bg);
+}
+
+.btn:where(.btn--teriary) {
+	background: var(--color-bg-2) var(--btn-teriary-bg);
+}
+
+.btn:where(.btn--disabled, [disabled]) {
+	background: hsl(var(--color-bg-1))  var(--btn-disabled-bg);
+	background-blend-mode: luminosity;
+	box-shadow: var(--btn-shadow-disabled);
+}
+
+/* Sizes
+-------------------------------------------------- */
+
+
+.btn--small {
+	padding: .857em 2em;
+	font-size: 1.4rem;
+	font-style: normal;
+	font-weight: bold;
+	letter-spacing: initial;
+}

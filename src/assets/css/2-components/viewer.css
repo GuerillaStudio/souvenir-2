@@ -1,0 +1,67 @@
+/* -------------------------------------------------
+== Viewer component
+-------------------------------------------------- */
+
+.viewer {
+	display: flex;
+	width: 100%;
+	max-width: var(--container-max-w);
+	flex-direction: column;
+	flex-grow: 1;
+	justify-content: center;
+	margin-inline: auto;
+	padding-inline: clamp(0, var(--container-gap), 2rem);
+}
+
+.viewer-container {
+	position: relative;
+}
+
+/* Preserve a 1:1 ratio */
+.viewer-container::before {
+	display: block;
+	padding-top: 100%;
+	content: "";
+}
+
+/* The content is in absolute spreaded on the square content */
+.viewer-content {
+	position: absolute;
+	display: flex;
+	flex-direction: column;
+	border-radius: var(--border-radius-conditional);
+	background: hsl(var(--color-hue-primary) 28% 16% / 100%);
+	box-shadow: 0 0.2rem 0.4rem 0 hsl(var(--color-hue-primary) 28% 10% / 50%) inset;
+	inset: 0;
+}
+
+.viewer-label {
+	display: flex;
+	max-width: 35rem;
+	flex-direction: column;
+	flex-grow: 1;
+	align-items: center;
+	justify-content: center;
+	padding: 3rem;
+	color: hsl(var(--color-hue-secondary) 100% 97% / 100%);
+	font-size: clamp(1.8rem, 5vw, 3rem);
+	font-weight: bold;
+	letter-spacing: 0.01em;
+	line-height: 1.44em;
+	margin-inline: auto;
+	text-align: center;
+}
+
+/* Player
+-------------------------------------------------- */
+
+.viewer-player {
+	display: inline-block;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--border-radius-conditional);
+  aspect-ratio: 1;
+  object-fit: cover;
+  text-align: center;
+  vertical-align: middle;
+}

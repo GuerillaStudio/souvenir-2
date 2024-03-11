@@ -1,0 +1,25 @@
+/* -------------------------------------------------
+== Box module
+-------------------------------------------------- */
+
+.box {
+	padding: .3rem;
+	border-radius: var(--border-radius-small);
+	background-color: hsl(var(--color-bg-3) / var(--backdrop-opacity-falback));
+
+}
+
+.box--inset {
+	box-shadow: inset 0 .2rem .4rem hsl(var(--color-hue-primary) 29% 10% / 50.2%)
+}
+
+
+
+@supports (backdrop-filter: none) or (-webkit-backdrop-filter: none) {
+	.box {
+		/* stylelint-disable-next-line property-no-vendor-prefix */
+		-webkit-backdrop-filter: blur(var(--backdrop-blur));
+		backdrop-filter: blur(var(--backdrop-blur));
+		background-color: hsl(var(--color-bg-3) / var(--backdrop-opacity));
+	}
+}

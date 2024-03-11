@@ -1,0 +1,59 @@
+/* -----------------------------------------------------------
+== Global styling
+-------------------------------------------------- */
+
+html {
+	background-color: hsl(var(--color-bg-2));
+	-webkit-overflow-scrolling: auto;
+	scroll-behavior: smooth;
+}
+
+body {
+	background-color: hsl(var(--color-bg-2));
+	color: var(--color-text-primary-2);
+	font-family: var(--fontstack1);
+}
+
+/* titles
+-------------------------------------------------- */
+
+:is(h1, h2, h3, h4, h5, h6) {
+	color: var(--color-text-primary-1);
+}
+
+/* links
+-------------------------------------------------- */
+
+a,
+a:visited {
+	color: var(--color-link);
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus {
+	border-radius: 0.3rem;
+}
+
+/* lists
+-------------------------------------------------- */
+
+ul {
+	padding-left: 2rem;
+	list-style-type: disc;
+}
+
+/* divers
+-------------------------------------------------- */
+
+hr {
+	display: block;
+	height: 0.1rem;
+	padding: 0;
+	border: 0;
+	border-top: 0.1rem solid #ccc;
+	margin: 1em 0;
+}

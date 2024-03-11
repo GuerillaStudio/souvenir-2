@@ -1,0 +1,100 @@
+/* -------------------------------------------------
+== Controls module
+-------------------------------------------------- */
+
+.controls {
+	display: flex;
+	align-items: center;
+	justify-content: space-around;
+	padding: 2rem var(--container-gap);
+	gap: var(--container-gap);
+}
+
+
+.controls-shutter,
+.controls-shutter:where(:visited) {
+	display: inline-flex;
+  width: 6.3rem;
+  height: 6.3rem;
+	align-items: center;
+	justify-content: center;
+	padding: .7rem;
+  border: none;
+  border-radius: 6rem;
+  aspect-ratio: 1;
+	background: hsl(var(--color-bg-1)) var(--color-bg-gradient-1);
+	box-shadow:
+		0 .2rem .4rem hsl(var(--color-hue-primary) 29% 10% / 80%),
+		0 0 0 .3rem hsl(calc((var(--color-hue-secondary)) + 3) 73% 51% / 36.9%),
+		inset 0 .1rem 0 hsl(var(--color-hue-secondary) 100% 95% / 50%)
+	;
+	color: var(--color-text-secondary-1);
+  cursor: pointer;
+  font-size: 0;
+}
+
+.controls-shutter:where([disabled]) {
+  cursor: default;
+  mix-blend-mode: luminosity;
+}
+
+.controls-shutter--cancel {
+	background: linear-gradient(
+		95.41deg,
+		hsl(var(--color-hue-danger) 100% 47%) 0%,
+		hsl(var(--color-hue-danger) 88% 40%) 100%)
+	;
+	box-shadow:
+		0 .2rem .4rem hsl(var(--color-hue-danger) 29% 10% / 30.2%),
+		0 0 0 .3rem hsl(var(--color-hue-danger) 73% 51% / 36.9%),
+		inset 0 .1rem 0 hsl(0deg 100% 95% / 10.2%)
+	;
+	mix-blend-mode: unset;
+}
+
+
+.controls-btn,
+.controls-btn:where(:visited) {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: .7rem;
+  border: none;
+  border-radius: 4.2rem;
+  background: hsl(var(--color-bg-1));
+	box-shadow:
+	0 .2rem .4rem hsl(var(--color-hue-secondary) 29% 10% / 80%),
+	inset 0 .1rem 0 hsl(var(--color-hue-secondary) 28% 95% / 25%)
+	;
+  color: var(--color-text-secondary-1);
+  cursor: pointer;
+  font-size: 0;
+
+}
+
+.controls-btn:where([disabled]) {
+  cursor: default;
+	mix-blend-mode: luminosity;
+}
+
+.controls-btn svg {
+	display: inline-flex;
+	flex-direction: column;
+  align-items: center;
+  justify-content: center;
+	font-size: 0;
+}
+
+.controls-btn--timer::before {
+  position: absolute;
+  right: .8rem;
+  bottom: .9rem;
+  content: attr(data-label);
+  font-size: 1.2rem;
+  font-weight: 600;
+  line-height: 1.25em;
+  paint-order: stroke fill;
+  text-align: right;
+  -webkit-text-stroke: hsl(var(--color-bg-1)) 0.6rem;
+}

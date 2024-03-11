@@ -1,0 +1,36 @@
+/* -------------------------------------------------
+== Config tokens
+-------------------------------------------------- */
+
+:root {
+	/* ℹ️ Emoji fonts are explicitely declared at the fontstacks end to be sure to be displayed correctely on every platforms. https://answers.microsoft.com/en-us/windows/forum/all/flag-emoji/85b163bc-786a-4918-9042-763ccf4b6c05 */
+	--fontstack1: "Montserrat", -apple-system, blinkmacsystemfont, "Segoe UI", roboto, helvetica, arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+	--basefont: 16;
+	--lineheight: 1.5;
+
+	/* container
+	-------------------------------------------------- */
+	--container-base: 40rem;
+	--container-gap: clamp(0.8rem, 2vw, 2rem);
+	--container-max-w: calc(var(--container-base) - (var(--container-gap) * 2));
+	--container-layout: minmax(var(--container-gap), 1fr) minmax(auto, var(--container-base)) minmax(var(--container-gap), 1fr);
+
+	/* Spacing
+	-------------------------------------------------- */
+
+	--spacing-section: 4rem;
+
+	/* Border radius
+	-------------------------------------------------- */
+
+	--border-radius: 3rem;
+	--border-radius-big: 3.8rem;
+	--border-radius-small: 2.5rem;
+	--border-radius-conditional:  max(0rem, min(var(--border-radius), calc((100vw - 100%) * 9999)));
+
+	/* Backdrop blur
+	-------------------------------------------------- */
+	--backdrop-blur: 2rem;
+	--backdrop-opacity: 60%;
+	--backdrop-opacity-fallback: 95%;
+}

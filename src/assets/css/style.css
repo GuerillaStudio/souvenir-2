@@ -1,0 +1,47 @@
+/* -------------------------------------------------
+== Style imports
+-------------------------------------------------- */
+
+@import url("0-config/colors.css");
+@import url("0-config/tokens.css");
+
+/* base
+-------------------------------------------------- */
+
+@import url("1-base/00-reset.css");
+@import url("1-base/01-fonts.css");
+@import url("1-base/02-typography.css");
+@import url("1-base/03-global.css");
+@import url("1-base/04-layout.css");
+
+/* components
+-------------------------------------------------- */
+
+@import url("2-components/buttons.css");
+@import url("2-components/viewer.css");
+
+/* modules
+-------------------------------------------------- */
+
+@import url("3-modules/box.css");
+@import url("3-modules/controls.css");
+@import url("3-modules/duration.css");
+
+/* pages
+-------------------------------------------------- */
+
+@import url("4-pages/welcome.css");
+@import url("4-pages/capture.css");
+
+/* responsive
+-------------------------------------------------- */
+
+/* @import url("5-responsive/.css"); */
+
+/* Helpers
+-------------------------------------------------- */
+
+@import url("6-helpers/layout.css");
+@import url("6-helpers/sizes.css");
+@import url("6-helpers/spacing.css");
+@import url("6-helpers/typography.css");
