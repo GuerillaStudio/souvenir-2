@@ -2,7 +2,7 @@ import type { JSX } from "preact"
 import { useState, useRef, useEffect } from "preact/hooks"
 import { Effect, Exit } from "effect"
 import { record } from "../services/recorder"
-import { fakeTranscode, transcode } from "../services/transcoder"
+import { transcode } from "../services/transcoder"
 
 /**
  * Prototype used for initial testing
@@ -25,15 +25,7 @@ export function Test() {
  * Recorded videos are exposed by the onRecord prop
  */
 function Recorder({ onRecord }: { onRecord: (blob: Blob) => void }) {
-	const [media, setMedia] = useState<null|MediaStream>(null)
-
-	useEffect(() => {
-		console.log('Ask camera')
-		navigator.mediaDevices.getUserMedia({
-			video: true,
-			audio: false,
-		}).then(setMedia).catch(console.error)
-	}, [])
+	const media = useCameraVideo()
 
 	if (!media) {
 		return <div>Accessing your camera ...</div>
@@ -60,8 +52,7 @@ function Transcoder({ source }: { source: Blob }) {
 	const [transcoded, setTranscoded] = useState<null|Blob>(null)
 
 	useEffect(() => {
-		// For now this is a fake transcoding because I have issues between vite and ffmpeg
-		const cancel = Effect.runCallback(fakeTranscode(source), {
+		const cancel = Effect.runCallback(transcode(source), {
 			onExit: exit => Exit.match(exit, {
 				onSuccess: setTranscoded,
 				onFailure: console.error,
@@ -102,6 +93,30 @@ function Video({ srcObject, ...props }: VideoProps) {
 	}, [srcObject])
 
 	return <video ref={ref} {...props}></video>
+}
+
+function useCameraVideo(): null|MediaStream {
+	const [stream, setStream] = useState<null|MediaStream>(null)
+
+	useEffect(() => {
+		let ref: null|MediaStream = null
+
+		navigator.mediaDevices.getUserMedia({ video: true, audio: false, })
+			.then(stream => {
+				console.log('[useCameraVideo] acquire video stream')
+				setStream(ref = stream)
+			})
+			.catch(console.error)
+
+		return () => {
+			if (ref) {
+				console.log('[useCameraVideo] release video stream')
+				ref.getTracks().forEach(track => track.stop())
+			}
+		}
+	}, [])
+
+	return stream
 }
 
 /**
