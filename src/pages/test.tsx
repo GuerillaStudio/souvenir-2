@@ -32,7 +32,7 @@ function Recorder({ onRecord }: { onRecord: (blob: Blob) => void }) {
 	}
 
 	const runRecord = () => {
-		Effect.runPromise(record(media, 2000))
+		Effect.runPromise(record(media, 2000, console.log))
 			.then(onRecord)
 			.catch(console.error)
 	}
@@ -52,7 +52,7 @@ function Transcoder({ source }: { source: Blob }) {
 	const [transcoded, setTranscoded] = useState<null|Blob>(null)
 
 	useEffect(() => {
-		const cancel = Effect.runCallback(transcode(source), {
+		const cancel = Effect.runCallback(transcode(source, console.log), {
 			onExit: exit => Exit.match(exit, {
 				onSuccess: setTranscoded,
 				onFailure: console.error,

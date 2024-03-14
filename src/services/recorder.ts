@@ -1,14 +1,14 @@
 import { Effect } from "effect"
 
-class MediaRecorderError extends Error {
+class RecordError extends Error {
 	readonly _tag = "MediaRecorderError"
 }
 
 export const record = (
 	media: MediaStream,
 	duration: number,
-	// onProgress: (progress: number) => void,
-) => Effect.async<Blob, MediaRecorderError>((resume, signal) => {
+	onProgress?: (progress: WaitProgress) => void,
+) => Effect.async<Blob, RecordError>((resume, signal) => {
 	if (signal.aborted) {
 		return
 	}
@@ -16,7 +16,6 @@ export const record = (
 	const chunks: Array<Blob> = []
 	let mediaType: null|string = null
 
-	let timeoutId: null|number = null
 	const recorder = new MediaRecorder(media)
 
 	recorder.onstart = () => {
@@ -27,7 +26,7 @@ export const record = (
 		chunks.push(event.data)
 	}
 
-	recorder.onerror = event => resume(Effect.fail(new MediaRecorderError()))
+	recorder.onerror = event => resume(Effect.fail(new RecordError("RecorderEventError")))
 
 	recorder.onstop = async () => {
 		if (signal.aborted) {
@@ -35,21 +34,23 @@ export const record = (
 		}
 
 		if (!mediaType) {
-			resume(Effect.fail(new MediaRecorderError()))
+			resume(Effect.fail(new RecordError("MissingMediaType")))
 			return
 		}
 
 		resume(Effect.succeed(new Blob(chunks, { type: mediaType })))
 	}
 
+	let cancelWait: null|CancelWait = null
+
 	try {
 		recorder.start()
 
-		timeoutId = setTimeout(() => {
+		cancelWait = wait(duration, () => {
 			recorder.stop()
-		}, duration)
+		}, { onProgress })
 	} catch (error) {
-		resume(Effect.fail(new MediaRecorderError()))
+		resume(Effect.fail(new RecordError("RecorderStartError")))
 	}
 
 	signal.onabort = () => {
@@ -57,8 +58,59 @@ export const record = (
 			recorder.stop()
 		}
 
-		if (timeoutId !== null) {
-			clearTimeout(timeoutId)
+		if (cancelWait) {
+			cancelWait()
 		}
 	}
 })
+
+interface WaitOptions {
+	readonly onProgress?: (progress: WaitProgress) => void
+	readonly progressInterval?: number
+}
+
+interface CancelWait {
+	(): void
+}
+
+class WaitProgress {
+	readonly elapsed: number
+	readonly total: number
+
+	constructor(elapsed: number, total: number) {
+		this.elapsed = elapsed
+		this.total = total
+	}
+}
+
+function wait(
+	delay: number,
+	callback: () => void,
+	{ onProgress, progressInterval = 100 }: WaitOptions = {}
+): CancelWait {
+	const started = Date.now()
+
+	let progressIntervalId: null|number = null
+
+	if (onProgress) {
+		progressIntervalId = setInterval(() => {
+			onProgress(new WaitProgress(Date.now() - started, delay))
+		}, progressInterval)
+	}
+
+	const doneTimeoutId = setTimeout(() => {
+		if (progressIntervalId) {
+			clearInterval(progressIntervalId)
+		}
+
+		callback()
+	}, delay)
+
+	return () => {
+		clearTimeout(doneTimeoutId)
+
+		if (progressIntervalId) {
+			clearInterval(progressIntervalId)
+		}
+	}
+}
