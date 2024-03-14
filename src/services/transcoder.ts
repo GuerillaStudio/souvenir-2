@@ -1,98 +1,86 @@
-import { Effect, pipe } from "effect"
-import { FFmpeg } from "@ffmpeg/ffmpeg"
-import { toBlobURL } from "@ffmpeg/util"
+import { Cause, Effect, Exit, pipe } from "effect"
+import { Ffmpeg, FfmpegError, ffmpeg } from "./ffmpeg.ts"
 
-// import coreURL from "../../node_modules/@ffmpeg/core-mt/dist/esm/ffmpeg-core.js?url"
-// import wasmURL from "../../node_modules/@ffmpeg/core-mt/dist/esm/ffmpeg-core.wasm?url"
-// import workerURL from "../../node_modules/@ffmpeg/core-mt/dist/esm/ffmpeg-core.worker.js?url"
+// Add mediaType from/to extension
+
+// TODO: Define transcoding configuration API :
+// - a required format
+// - a optional filter (grayscale, sepia, etc)
+// - optional effects (boomerang, glitch, etc)
+
+interface Configuration {}
+
+const toFfmpegArgs = (configuration: Configuration): Array<string> => [
+	// Video filters
+	"-filter:v", [
+		"crop='min(iw\,ih)':'min(iw\,ih)'", // Square crop
+		// "colorchannelmixer='.3:.4:.3:0:.3:.4:.3:0:.3:.4:.3'", // Grayscale filter (broken)
+		// "colorchannelmixer=.393:.769:.189:0:.349:.686:.168:0:.272:.534:.131", // Sepia filter (broken)
+	].join(","),
+]
+
+// "-filter_complex", "[0]reverse[r];[0][r]concat=n=2:v=1:a=0" // wip boomerang
 
 /**
- * ffmpeg resource
- * See https://effect.website/docs/guides/resource-management
+ * The implementation of transcode
+ *
  */
+const transcodeImpl = (
+	input: Blob,
+	configuration: Configuration = {}
+) => Effect.gen(function* (_) {
+	// Access Ffmpeg service
+	// We now have a requirement to Ffmpeg
+	const ffmpeg = yield* _(Ffmpeg)
 
-const blobUrl = (url: string, mediaType: string) => Effect.tryPromise(() => toBlobURL(url, mediaType))
-
-const loadFfmpegBlobUrl = (baseUrl: string) => Effect.gen(function* (_) {
-	const ffmpeg = new FFmpeg()
-
-	const [coreURL, wasmURL, workerURL] = yield* _(Effect.all([
-		blobUrl(`${baseUrl}/ffmpeg-core.js`, "text/javascript"),
-		blobUrl(`${baseUrl}/ffmpeg-core.wasm`, "application/wasm"),
-		blobUrl(`${baseUrl}/ffmpeg-core.worker.js`, "text/javascript"),
-	], { concurrency: 3 }))
-
-	yield* _(Effect.tryPromise(signal => ffmpeg.load({ coreURL, wasmURL, workerURL }, { signal })))
-	return ffmpeg
-})
-
-const ffmpegResource = Effect.acquireRelease(
-	pipe(
-		loadFfmpegBlobUrl("https://unpkg.com/@ffmpeg/core-mt@0.12.6/dist/esm"),
-		Effect.tap(Effect.log("ffmpeg loaded")),
-	),
-	(ffmpeg: FFmpeg) => pipe(
-		Effect.sync(() => ffmpeg.terminate()),
-		Effect.tap(Effect.log("ffmpeg terminated")),
-	),
-)
-
-export const transcode = (
-	blob: Blob,
-	onProgress?: (x: any) => void
-) => Effect.scoped(Effect.gen(function* (_) {
+	// Input and output are hardcoded for now
 	const inputPath = "input.webm"
 	const outputPath =  "output.mp4"
 
-	const ffmpeg = yield* _(ffmpegResource)
+	// Write the
+	yield* _(Effect.logInfo("write input file"))
+	const buffer = yield* _(Effect.promise(() => input.arrayBuffer()))
+	yield* _(ffmpeg.writeFile(inputPath, new Uint8Array(buffer)))
 
-	if (onProgress) {
-		ffmpeg.on("progress", onProgress)
-		yield* _(Effect.addFinalizer(() => Effect.sync(() => ffmpeg.off("progress", onProgress))))
-	}
+	// We ensure the previsouly created input file is deleted no matter what by adding a finalizer
+	yield* _(Effect.addFinalizer(() => Effect.ignore(pipe(
+		Effect.logInfo("delete input file"),
+		Effect.tap(ffmpeg.deleteFile(inputPath)),
+	))))
 
-	yield* _(writeFile(ffmpeg, inputPath, blob))
-	yield* _(Effect.addFinalizer(() => deleteFile(ffmpeg, inputPath)))
+	const args = toFfmpegArgs(configuration)
 
-	yield* _(exec(ffmpeg, [
-		"-i", inputPath,
-		"-filter:v", "crop='min(iw,ih)':'min(iw,ih)'",
-		outputPath,
-	]))
+	yield* _(Effect.logInfo(`execute ffmpeg with ${args.join(" ")}`))
+	yield* _(ffmpeg.exec(["-i", inputPath, ...args, outputPath])) // we could add a timeout here
 
-	yield* _(Effect.addFinalizer(() => deleteFile(ffmpeg, outputPath)))
+	// Same as before but for the output file created by ffmpeg
+	yield* _(Effect.addFinalizer(() => Effect.ignore(pipe(
+		Effect.logInfo("delete output file"),
+		Effect.tap(ffmpeg.deleteFile(outputPath)),
+	))))
 
-	const data = yield* _(readFile(ffmpeg, outputPath))
-
+	yield* _(Effect.logInfo("read output file"))
+	const data = yield* _(ffmpeg.readFile(outputPath))
 	return new Blob([data.buffer], { type: "video/mp4" })
-}))
+})
 
-const exec = (ffmpeg: FFmpeg, args: Array<string>, timeout?: number) => Effect.tryPromise(signal => ffmpeg.exec(
-	args,
-	timeout,
-	{ signal },
-))
-
-const writeFile = (ffmpeg: FFmpeg, path: string, data: Blob) => pipe(
-	Effect.logInfo(`write ${path}`),
-	Effect.flatMap(() => Effect.tryPromise(async signal => ffmpeg.writeFile(
-		path,
-		new Uint8Array(await data.arrayBuffer()),
-		{ signal }
-	))),
+/**
+ * The exposed transcode function
+ * Interruptible, dispose its resources and hiding all Effect specifities by a simple API
+ */
+// We currently expose Cause.Cause in onFailure callback, would be great to not expose Effect API
+// Would also allow us to not call onFailure for some Cause like Interrupt
+export const transcode = (
+	input: Blob,
+	onSuccess: (output: Blob) => void,
+	onFailure: (error: Cause.Cause<FfmpegError>) => void,
+) => pipe(
+	transcodeImpl(input),
+	Effect.provideServiceEffect(Ffmpeg, ffmpeg),
+	Effect.scoped,
+	effect => Effect.runCallback(effect, {onExit: exit => Exit.match(exit, {onSuccess, onFailure }) })
 )
 
-const readFile = (ffmpeg: FFmpeg, path: string) => pipe(
-	Effect.logInfo(`read ${path}`),
-	Effect.flatMap(() => Effect.tryPromise(signal => ffmpeg.readFile(
-		path,
-		"binary",
-		{ signal }
-	) as Promise<Uint8Array>)),
-)
-
-// should use tryPromise but we need to drop the error to be usable in a finalizer
-const deleteFile = (ffmpeg: FFmpeg, path: string) => pipe(
-	Effect.logInfo(`delete ${path}`),
-	Effect.flatMap(() => Effect.promise(signal => ffmpeg.deleteFile(path, { signal }))),
-)
+// Alternatives API to brainstorm instead of the current continuation-passing style
+// - destructured return : `(Blob) => [Promise, Cancel]` or `(Blob) => {promise: Promise, cancel: Cancel}`
+// - cancelable promise :`(Blob) => Promise & { cancel: Cancel }
