@@ -74,11 +74,11 @@ const loadFfmpegFromBaseUrl = (baseUrl: string) => Effect.gen(function* (_) {
  */
 const ffmpegWasmResource = Effect.acquireRelease(
 	pipe(
-		Effect.log("load ffmpeg from unpkg"),
+		Effect.logDebug("load ffmpeg from unpkg"),
 		Effect.flatMap(() => loadFfmpegFromBaseUrl("https://unpkg.com/@ffmpeg/core-mt@0.12.6/dist/esm")),
 	),
 	(ffmpeg: FfmpegWasm) => pipe(
-		Effect.log("terminate ffmpeg"),
+		Effect.logDebug("terminate ffmpeg"),
 		Effect.flatMap(() => Effect.sync(() => ffmpeg.terminate())),
 	),
 )

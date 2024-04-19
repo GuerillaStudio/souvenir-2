@@ -38,13 +38,13 @@ const transcodeImpl = (
 	const outputPath =  "output.mp4"
 
 	// Write the
-	yield* _(Effect.logInfo("write input file"))
+	yield* _(Effect.logDebug("write input file"))
 	const buffer = yield* _(Effect.promise(() => input.arrayBuffer()))
 	yield* _(ffmpeg.writeFile(inputPath, new Uint8Array(buffer)))
 
 	// We ensure the previsouly created input file is deleted no matter what by adding a finalizer
 	yield* _(Effect.addFinalizer(() => Effect.ignore(pipe(
-		Effect.logInfo("delete input file"),
+		Effect.logDebug("delete input file"),
 		Effect.tap(ffmpeg.deleteFile(inputPath)),
 	))))
 
@@ -55,11 +55,11 @@ const transcodeImpl = (
 
 	// Same as before but for the output file created by ffmpeg
 	yield* _(Effect.addFinalizer(() => Effect.ignore(pipe(
-		Effect.logInfo("delete output file"),
+		Effect.logDebug("delete output file"),
 		Effect.tap(ffmpeg.deleteFile(outputPath)),
 	))))
 
-	yield* _(Effect.logInfo("read output file"))
+	yield* _(Effect.logDebug("read output file"))
 	const data = yield* _(ffmpeg.readFile(outputPath))
 	return new Blob([data.buffer], { type: "video/mp4" })
 })
