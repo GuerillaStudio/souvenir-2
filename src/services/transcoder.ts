@@ -28,39 +28,39 @@ const toFfmpegArgs = (configuration: Configuration): Array<string> => [
 const transcodeImpl = (
 	input: Blob,
 	configuration: Configuration = {}
-) => Effect.gen(function* (_) {
+) => Effect.gen(function* () {
 	// Access Ffmpeg service
 	// We now have a requirement to Ffmpeg
-	const ffmpeg = yield* _(Ffmpeg)
+	const ffmpeg = yield* Ffmpeg
 
 	// Input and output are hardcoded for now
 	const inputPath = "input.webm"
 	const outputPath =  "output.mp4"
 
 	// Write the
-	yield* _(Effect.logDebug("write input file"))
-	const buffer = yield* _(Effect.promise(() => input.arrayBuffer()))
-	yield* _(ffmpeg.writeFile(inputPath, new Uint8Array(buffer)))
+	yield* Effect.logDebug("write input file")
+	const buffer = yield* Effect.promise(() => input.arrayBuffer())
+	yield* ffmpeg.writeFile(inputPath, new Uint8Array(buffer))
 
 	// We ensure the previsouly created input file is deleted no matter what by adding a finalizer
-	yield* _(Effect.addFinalizer(() => Effect.ignore(pipe(
+	yield* Effect.addFinalizer(() => Effect.ignore(pipe(
 		Effect.logDebug("delete input file"),
 		Effect.tap(ffmpeg.deleteFile(inputPath)),
-	))))
+	)))
 
 	const args = toFfmpegArgs(configuration)
 
-	yield* _(Effect.logInfo(`execute ffmpeg with ${args.join(" ")}`))
-	yield* _(ffmpeg.exec(["-i", inputPath, ...args, outputPath])) // we could add a timeout here
+	yield* Effect.logInfo(`execute ffmpeg with ${args.join(" ")}`)
+	yield* ffmpeg.exec(["-i", inputPath, ...args, outputPath]) // we could add a timeout here
 
 	// Same as before but for the output file created by ffmpeg
-	yield* _(Effect.addFinalizer(() => Effect.ignore(pipe(
+	yield* Effect.addFinalizer(() => Effect.ignore(pipe(
 		Effect.logDebug("delete output file"),
 		Effect.tap(ffmpeg.deleteFile(outputPath)),
-	))))
+	)))
 
-	yield* _(Effect.logDebug("read output file"))
-	const data = yield* _(ffmpeg.readFile(outputPath))
+	yield* Effect.logDebug("read output file")
+	const data = yield* ffmpeg.readFile(outputPath)
 	return new Blob([data.buffer], { type: "video/mp4" })
 })
 

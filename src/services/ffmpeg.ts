@@ -51,19 +51,19 @@ const blobUrl = (url: string, mediaType: string) => Effect.tryPromise({
  * Good enough for prototyping
  * TODO: Load ffmpeg from bundled local files (so they can easily identified and precached)
  */
-const loadFfmpegFromBaseUrl = (baseUrl: string) => Effect.gen(function* (_) {
+const loadFfmpegFromBaseUrl = (baseUrl: string) => Effect.gen(function* () {
 	const ffmpeg = new FfmpegWasm()
 
-	const [coreURL, wasmURL, workerURL] = yield* _(Effect.all([
+	const [coreURL, wasmURL, workerURL] = yield* Effect.all([
 		blobUrl(`${baseUrl}/ffmpeg-core.js`, "text/javascript"),
 		blobUrl(`${baseUrl}/ffmpeg-core.wasm`, "application/wasm"),
 		blobUrl(`${baseUrl}/ffmpeg-core.worker.js`, "text/javascript"),
-	], { concurrency: 3 }))
+	], { concurrency: 3 })
 
-	yield* _(Effect.tryPromise({
+	yield* Effect.tryPromise({
 		try: signal => ffmpeg.load({ coreURL, wasmURL, workerURL }, { signal }),
 		catch: makeFfmpegError,
-	}))
+	})
 
 	return ffmpeg
 })
@@ -86,8 +86,8 @@ const ffmpegWasmResource = Effect.acquireRelease(
 /**
  * Implemention of the Ffmpeg service
  */
-export const ffmpeg = Effect.gen(function* (_) {
-	const ffmpegWasm = yield* _(ffmpegWasmResource)
+export const ffmpeg = Effect.gen(function* () {
+	const ffmpegWasm = yield* ffmpegWasmResource
 
 	return {
 		exec: (args: Array<string>) => Effect.tryPromise({

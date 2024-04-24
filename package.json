@@ -13,7 +13,7 @@
 		"@ffmpeg/core-mt": "^0.12.6",
 		"@ffmpeg/ffmpeg": "^0.12.10",
 		"@ffmpeg/util": "^0.12.1",
-		"effect": "^3.0.3",
+		"effect": "^3.0.4",
 		"preact": "^10.13.1",
 		"preact-iso": "^2.4.0",
 		"preact-render-to-string": "^6.4.0"
