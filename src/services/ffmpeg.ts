@@ -1,11 +1,12 @@
-import { Context, Data, Effect, pipe } from "effect"
+import { Context, Data, Effect } from "effect"
 import { FFmpeg as FfmpegWasm } from "@ffmpeg/ffmpeg"
-import { toBlobURL } from "@ffmpeg/util"
+import coreURL from "@ffmpeg/core?url"
+import wasmURL from "@ffmpeg/core/wasm?url"
 
-// import coreURL from "../../node_modules/@ffmpeg/core-mt/dist/esm/ffmpeg-core.js?url"
-// import wasmURL from "../../node_modules/@ffmpeg/core-mt/dist/esm/ffmpeg-core.wasm?url"
-// import workerURL from "../../node_modules/@ffmpeg/core-mt/dist/esm/ffmpeg-core.worker.js?url"
-
+// Support for multi threaded ffmpeg needs https://github.com/ffmpegwasm/ffmpeg.wasm/pull/760
+// import mtCoreURL from "@ffmpeg/core-mt?url"
+// import mtWasmURL from "@ffmpeg/core-mt/wasm?url"
+// import mtWorkerURL from "@ffmpeg/core-mt/worker?url"
 
 /**
  *
@@ -31,41 +32,13 @@ export class Ffmpeg extends Context.Tag("Ffmpeg")<
 >() {}
 
 /**
- * A utility function to make a FfmpegError from various unknow errors
- */
-const makeFfmpegError = (error: unknown) => new FfmpegError({
-	message: error + ""
-})
-
-/**
- *
- */
-const blobUrl = (url: string, mediaType: string) => Effect.tryPromise({
-	try: () => toBlobURL(url, mediaType),
-	catch: makeFfmpegError,
-})
-
-/**
- * Load ffmpeg from a baseUrl
- * Downloads ffmpeg-core files and expose them as object url like suggested by ffmpegwasm docs
- * Good enough for prototyping
- * TODO: Load ffmpeg from bundled local files (so they can easily identified and precached)
- */
-const loadFfmpegFromBaseUrl = (baseUrl: string) => Effect.gen(function* () {
-	const ffmpeg = new FfmpegWasm()
-
-	const [coreURL, wasmURL, workerURL] = yield* Effect.all([
-		blobUrl(`${baseUrl}/ffmpeg-core.js`, "text/javascript"),
-		blobUrl(`${baseUrl}/ffmpeg-core.wasm`, "application/wasm"),
-		blobUrl(`${baseUrl}/ffmpeg-core.worker.js`, "text/javascript"),
-	], { concurrency: 3 })
-
-	yield* Effect.tryPromise({
-		try: signal => ffmpeg.load({ coreURL, wasmURL, workerURL }, { signal }),
-		catch: makeFfmpegError,
+ * A utility function to create effect from promises with a FfmpegError in the exception channel
+ * */
+const ffmpegTryPromise = <A>(try_: (signal: AbortSignal) => PromiseLike<A>) => Effect.tryPromise({
+	try: try_,
+	catch: error => new FfmpegError({
+		message: String(error)
 	})
-
-	return ffmpeg
 })
 
 /**
@@ -73,14 +46,16 @@ const loadFfmpegFromBaseUrl = (baseUrl: string) => Effect.gen(function* () {
  * Logic to acquire (initialize and load) and release (terminate) a ffmpeg wasm instance
  */
 const ffmpegWasmResource = Effect.acquireRelease(
-	pipe(
-		Effect.logDebug("load ffmpeg from unpkg"),
-		Effect.flatMap(() => loadFfmpegFromBaseUrl("https://unpkg.com/@ffmpeg/core-mt@0.12.6/dist/esm")),
-	),
-	(ffmpeg: FfmpegWasm) => pipe(
-		Effect.logDebug("terminate ffmpeg"),
-		Effect.flatMap(() => Effect.sync(() => ffmpeg.terminate())),
-	),
+	Effect.gen(function* () {
+		yield* Effect.logDebug("load ffmpeg")
+		const ffmpeg = new FfmpegWasm()
+		yield* ffmpegTryPromise(signal => ffmpeg.load({ coreURL, wasmURL }, { signal }))
+		return ffmpeg
+	}),
+	(ffmpeg: FfmpegWasm) => Effect.gen(function* () {
+		yield* Effect.logDebug("terminate ffmpeg")
+		yield* Effect.sync(() => ffmpeg.terminate())
+	}),
 )
 
 /**
@@ -90,23 +65,19 @@ export const ffmpeg = Effect.gen(function* () {
 	const ffmpegWasm = yield* ffmpegWasmResource
 
 	return {
-		exec: (args: Array<string>) => Effect.tryPromise({
+		exec: (args: Array<string>) => ffmpegTryPromise(
 			// no timeout support here, should use effect timeout capabilities if wanted
-			try: signal => ffmpegWasm.exec(args, -1, { signal }),
-			catch: makeFfmpegError,
-		}),
-		deleteFile: (path: string) => Effect.tryPromise({
-			try: signal => ffmpegWasm.deleteFile(path, { signal }),
-			catch: makeFfmpegError,
-		}),
-		readFile: (path: string) => Effect.tryPromise({
-			try: signal => ffmpegWasm.readFile(path, "binary", { signal }) as Promise<Uint8Array>,
-			catch: makeFfmpegError,
-		}),
-		writeFile: (path: string, data: Uint8Array) => Effect.tryPromise({
-			try: signal => ffmpegWasm.writeFile(path, data, { signal }),
-			catch: makeFfmpegError,
-		}),
+			signal => ffmpegWasm.exec(args, -1, { signal })
+		),
+		deleteFile: (path: string) => ffmpegTryPromise(
+			signal => ffmpegWasm.deleteFile(path, { signal })
+		),
+		readFile: (path: string) => ffmpegTryPromise(
+			signal => ffmpegWasm.readFile(path, "binary", { signal }) as Promise<Uint8Array>
+		),
+		writeFile: (path: string, data: Uint8Array) => ffmpegTryPromise(
+			signal => ffmpegWasm.writeFile(path, data, { signal })
+		),
 	}
 })
 
