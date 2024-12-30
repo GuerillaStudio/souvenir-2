@@ -5,8 +5,11 @@
 .box {
 	padding: .3rem;
 	border-radius: var(--border-radius-small);
-	background-color: hsl(var(--color-bg-3) / var(--backdrop-opacity-falback));
+	background-color: hsl(var(--color-bg-3));
+}
 
+.box--blur {
+	background-color: hsl(var(--color-bg-3) / var(--backdrop-opacity-fallback));
 }
 
 .box--inset {
@@ -16,7 +19,7 @@
 
 
 @supports (backdrop-filter: none) or (-webkit-backdrop-filter: none) {
-	.box {
+	.box--blur {
 		/* stylelint-disable-next-line property-no-vendor-prefix */
 		-webkit-backdrop-filter: blur(var(--backdrop-blur));
 		backdrop-filter: blur(var(--backdrop-blur));

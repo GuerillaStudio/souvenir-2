@@ -43,7 +43,7 @@
 	--color-text-primary-2: hsl(var(--color-hue-primary) 100% 95%);
 	--color-text-primary-3: hsl(var(--color-hue-primary) 50% 95%);
 	--color-text-primary-4: hsl(var(--color-hue-primary) 29% 80%);
-	--color-text-secondary-1: hsl(var(--color-hue-secondary) 100% 97%);
-	--color-text-secondary-2: hsl(var(--color-hue-secondary) 88% 40%);
+	--color-text-secondary-1: hsl(var(--color-hue-secondary) 100% 98%);
+	--color-text-secondary-2: hsl(var(--color-hue-secondary) 90% 30%);
 
 }

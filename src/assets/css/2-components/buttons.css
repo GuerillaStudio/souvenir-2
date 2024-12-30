@@ -38,6 +38,7 @@
 	line-height: 1.5em;
 	text-align: center;
 	text-decoration: none;
+	cursor: pointer;
 }
 
 .btn:is(:hover,:active) {
