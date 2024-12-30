@@ -1,7 +1,7 @@
-import { useLocation } from 'preact-iso';
+import { useLocation } from 'preact-iso'
 
 export function Header() {
-	const { url } = useLocation();
+	const { url } = useLocation()
 
 	return (
 		<header class="container">
@@ -9,22 +9,22 @@ export function Header() {
 				<div id="dev-nav"><span aria-hidden="true">[🚧 </span>dev navigation<span aria-hidden="true">]:</span></div>
 				<a
 					href="/"
-					class={url == '/' && 'text-underline'}
-					aria-current={url == '/' ? 'page' : null}
+					class={url === '/' ? 'text-underline' : undefined}
+					aria-current={url == '/' ? 'page' : undefined}
 				>
 					Home
 				</a> -
 				<a
 					href="/capture"
-					class={url == '/capture' && 'text-underline'}
-					aria-current={url == '/capture' ? 'page' : null}
+					class={url === '/capture' ? 'text-underline' : undefined}
+					aria-current={url == '/capture' ? 'page' : undefined}
 				>
 					Capture
 				</a> -
 				<a
 					href="/404"
-					class={url == '/404' && 'text-underline'}
-					aria-current={url == '/404' ? 'page' : null}
+					class={url === '/404' ? 'text-underline' : undefined}
+					aria-current={url == '/404' ? 'page' : undefined}
 				>
 					404
 				</a>
