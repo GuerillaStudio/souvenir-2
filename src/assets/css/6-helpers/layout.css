@@ -2,6 +2,11 @@
 == Typography helpers
 -------------------------------------------------- */
 
+.block { display: block; }
+.inline-block { display: inline-block; }
+.inline { display: inline; }
 .flex { display: flex; }
+.inline-flex { display: inline-flex; }
 .justify-center { justify-content: center; }
 .align-items-center { align-items:center; }
+.flex-wrap { flex-wrap: wrap; }

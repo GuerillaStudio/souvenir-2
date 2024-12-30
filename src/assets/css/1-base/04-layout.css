@@ -21,6 +21,8 @@
 	display: flex;
 	min-height: calc(100dvh - (var(--spacing-section) * 2));
 	flex-direction: column;
+	margin-inline: calc(var(--container-gap) * -1);
+	padding-inline: var(--container-gap);
 	padding-top: calc(var(--spacing-section) * .5);
 	padding-bottom: calc(var(--spacing-section) * .75);
 	border-radius: 0 0 var(--border-radius-big) var(--border-radius-big);

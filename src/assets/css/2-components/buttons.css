@@ -40,6 +40,10 @@
 	text-decoration: none;
 }
 
+.btn:is(:hover,:active) {
+	text-decoration: none;
+}
+
 /* Colors
 -------------------------------------------------- */
 
@@ -47,8 +51,8 @@
 	background: var(--color-bg-2) var(--btn-secondary-bg);
 }
 
-.btn:where(.btn--teriary) {
-	background: var(--color-bg-2) var(--btn-teriary-bg);
+.btn:where(.btn--tertiary) {
+	background: var(--color-bg-2) var(--btn-tertiary-bg);
 }
 
 .btn:where(.btn--disabled, [disabled]) {
