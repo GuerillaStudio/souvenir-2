@@ -1,10 +1,10 @@
-import { Effect } from "effect"
+import { Cause, Effect, Exit } from "effect"
 
 class RecordError extends Error {
 	readonly _tag = "MediaRecorderError"
 }
 
-export const record = (
+const recordImpl = (
 	media: MediaStream,
 	duration: number,
 	onProgress?: (progress: WaitProgress) => void,
@@ -63,6 +63,17 @@ export const record = (
 		}
 	}
 })
+
+export const record = (
+	media: MediaStream,
+	duration: number,
+	onSuccess: (output: Blob) => void,
+	onFailure: (error: Cause.Cause<RecordError>) => void,
+	onProgress?: (progress: WaitProgress) => void,
+) => Effect.runCallback(
+	recordImpl(media, duration, onProgress),
+	{ onExit: exit => Exit.match(exit, { onSuccess, onFailure }) }
+)
 
 interface WaitOptions {
 	readonly onProgress?: (progress: WaitProgress) => void

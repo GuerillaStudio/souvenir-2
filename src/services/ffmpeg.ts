@@ -33,7 +33,7 @@ export class Ffmpeg extends Context.Tag("Ffmpeg")<
 
 /**
  * A utility function to create effect from promises with a FfmpegError in the exception channel
- * */
+ */
 const ffmpegTryPromise = <A>(try_: (signal: AbortSignal) => PromiseLike<A>) => Effect.tryPromise({
 	try: try_,
 	catch: error => new FfmpegError({
@@ -63,6 +63,9 @@ const ffmpegWasmResource = Effect.acquireRelease(
  */
 export const ffmpeg = Effect.gen(function* () {
 	const ffmpegWasm = yield* ffmpegWasmResource
+
+	// for debug purpose, to remove or expose
+	ffmpegWasm.on("log", ({ type, message }) => console.debug(`[${type}]${message}`))
 
 	return {
 		exec: (args: Array<string>) => ffmpegTryPromise(

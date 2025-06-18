@@ -1,6 +1,5 @@
 import type { JSX } from "preact"
 import { useState, useRef, useEffect } from "preact/hooks"
-import { Effect, Exit } from "effect"
 import { record } from "../services/recorder"
 import { transcode } from "../services/transcoder"
 
@@ -32,17 +31,18 @@ function Recorder({ onRecord }: { onRecord: (blob: Blob) => void }) {
 	}
 
 	const runRecord = () => {
-		const cancel = Effect.runCallback(record(media, 2000, console.log), {
-			onExit: exit => Exit.match(exit, {
-				onSuccess: onRecord,
-				onFailure: console.error,
-			})
-		})
+		const cancel = record(
+			media,
+			2000,
+			onRecord,
+			console.error,
+			progress => console.debug(`${Math.floor(progress.elapsed / progress.total * 100)}%`),
+		)
 	}
 
 	return (
 		<div>
-			<Video srcObject={media} autoplay/>
+			<VideoSrcObject srcObject={media} autoplay />
 			<button type="button" onClick={runRecord}>Record</button>
 		</div>
 	)
@@ -55,7 +55,17 @@ function Transcoder({ source }: { source: Blob }) {
 	const [transcoded, setTranscoded] = useState<null|Blob>(null)
 
 	useEffect(() => {
-		const cancel = transcode(source, setTranscoded, console.error)
+		const cancel = transcode(
+			source,
+			{
+				format: "mp4",
+				filter: "sepia",
+				boomerang: false,
+				glitch: false,
+			},
+			setTranscoded,
+			console.error,
+		)
 
 		return () => {
 			cancel()
@@ -72,16 +82,22 @@ function Transcoder({ source }: { source: Blob }) {
 
 	return (
 		<div>
-			<Video src={transcodedUrl} autoplay loop/>
+			{transcoded.type.startsWith("image/") ?
+				<img src={transcodedUrl} />
+			: transcoded.type.startsWith("video/") ?
+				<video src={transcodedUrl} autoplay loop />
+			:
+				<div>Unsupported media</div>
+			}
 		</div>
 	)
 }
 
-interface VideoProps extends JSX.HTMLAttributes<HTMLVideoElement> {
+interface VideoSrcObjectProps extends JSX.VideoHTMLAttributes<HTMLVideoElement> {
 	srcObject?: MediaProvider
 }
 
-function Video({ srcObject, ...props }: VideoProps) {
+function VideoSrcObject({ srcObject, ...props }: VideoSrcObjectProps) {
 	const ref = useRef<HTMLVideoElement>(null)
 
 	useEffect(() => {

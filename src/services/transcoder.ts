@@ -8,18 +8,42 @@ import { Ffmpeg, FfmpegError, ffmpeg } from "./ffmpeg.ts"
 // - a optional filter (grayscale, sepia, etc)
 // - optional effects (boomerang, glitch, etc)
 
-interface Configuration {}
+const formats = {
+	"mp4": "video/mp4",
+	// "gif": "image/gif", // broken ?
+} as const
 
-const toFfmpegArgs = (configuration: Configuration): Array<string> => [
-	// Video filters
-	"-filter:v", [
-		"crop='min(iw\,ih)':'min(iw\,ih)'", // Square crop
-		// "colorchannelmixer='.3:.4:.3:0:.3:.4:.3:0:.3:.4:.3'", // Grayscale filter (broken)
-		// "colorchannelmixer=.393:.769:.189:0:.349:.686:.168:0:.272:.534:.131", // Sepia filter (broken)
-	].join(","),
-]
+interface Configuration {
+	format: keyof typeof formats
+	filter: "none" | "grayscale" | "sepia"
+	boomerang: boolean
+	glitch: boolean
+}
 
-// "-filter_complex", "[0]reverse[r];[0][r]concat=n=2:v=1:a=0" // wip boomerang
+const toFfmpegArgs = (configuration: Configuration): Array<string> => {
+	const filters = [
+		"crop='min(iw\,ih)':'min(iw\,ih)'"
+	]
+
+	if (configuration.filter === "grayscale") {
+		filters.push("colorchannelmixer='.3:.4:.3:0:.3:.4:.3:0:.3:.4:.3'")
+	} else if (configuration.filter === "sepia") {
+		filters.push("colorchannelmixer=.393:.769:.189:0:.349:.686:.168:0:.272:.534:.131")
+	}
+
+	if (configuration.boomerang) {
+		filters.push("[0]reverse[r];[0][r]concat=n=2:v=1:a=0")
+	}
+
+	if (configuration.glitch) {
+		throw new Error("Not implemented")
+	}
+
+	return [
+		"-filter_complex", filters.join(",")
+	]
+}
+
 
 /**
  * The implementation of transcode
@@ -27,7 +51,7 @@ const toFfmpegArgs = (configuration: Configuration): Array<string> => [
  */
 const transcodeImpl = (
 	input: Blob,
-	configuration: Configuration = {}
+	configuration: Configuration,
 ) => Effect.gen(function* () {
 	// Access Ffmpeg service
 	// We now have a requirement to Ffmpeg
@@ -51,7 +75,9 @@ const transcodeImpl = (
 	const args = toFfmpegArgs(configuration)
 
 	yield* Effect.logInfo(`execute ffmpeg with ${args.join(" ")}`)
-	yield* ffmpeg.exec(["-i", inputPath, ...args, outputPath]) // we could add a timeout here
+	const errorCode = yield* ffmpeg.exec(["-i", inputPath, ...args, outputPath]) // we could add a timeout here
+	yield* Effect.logDebug(`Error code : ${errorCode}`)
+
 
 	// Same as before but for the output file created by ffmpeg
 	yield* Effect.addFinalizer(() => Effect.ignore(pipe(
@@ -61,7 +87,7 @@ const transcodeImpl = (
 
 	yield* Effect.logDebug("read output file")
 	const data = yield* ffmpeg.readFile(outputPath)
-	return new Blob([data.buffer], { type: "video/mp4" })
+	return new Blob([data.buffer], { type: formats[configuration.format] })
 })
 
 /**
@@ -72,13 +98,14 @@ const transcodeImpl = (
 // Would also allow us to not call onFailure for some Cause like Interrupt
 export const transcode = (
 	input: Blob,
+	configuration: Configuration,
 	onSuccess: (output: Blob) => void,
 	onFailure: (error: Cause.Cause<FfmpegError>) => void,
 ) => pipe(
-	transcodeImpl(input),
+	transcodeImpl(input, configuration),
 	Effect.provideServiceEffect(Ffmpeg, ffmpeg),
 	Effect.scoped,
-	effect => Effect.runCallback(effect, {onExit: exit => Exit.match(exit, {onSuccess, onFailure }) })
+	effect => Effect.runCallback(effect, {onExit: exit => Exit.match(exit, {onSuccess, onFailure}) })
 )
 
 // Alternatives API to brainstorm instead of the current continuation-passing style
