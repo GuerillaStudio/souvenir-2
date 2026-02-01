@@ -10,10 +10,10 @@
 		"preview": "vite preview"
 	},
 	"dependencies": {
-		"@ffmpeg/core": "0.12.6",
-		"@ffmpeg/core-mt": "0.12.6",
-		"@ffmpeg/ffmpeg": "0.12.10",
-		"@ffmpeg/util": "0.12.1",
+		"@ffmpeg/core": "^0.12.10",
+		"@ffmpeg/core-mt": "^0.12.10",
+		"@ffmpeg/ffmpeg": "^0.12.15",
+		"@ffmpeg/util": "^0.12.2",
 		"effect": "^3.0.4",
 		"preact": "^10.28.3",
 		"preact-iso": "^2.11.1",
